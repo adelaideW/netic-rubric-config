@@ -1970,6 +1970,21 @@ function CallScoreCard({ rubric, result, isRatingGuide, call }) {
   const [sourceOpen, setSourceOpen] = useState(true);
   const [showAiConfidence, setShowAiConfidence] = useState(false);
   const [showRecordingDetails, setShowRecordingDetails] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const optionsRef = useRef(null);
+
+  useEffect(() => {
+    if (!optionsOpen) return undefined;
+    const onDown = (e) => {
+      if (optionsRef.current && !optionsRef.current.contains(e.target)) {
+        setOptionsOpen(false);
+      }
+    };
+    window.addEventListener('pointerdown', onDown);
+    return () => window.removeEventListener('pointerdown', onDown);
+  }, [optionsOpen]);
+
+  const optionsActive = showAiConfidence || showRecordingDetails;
 
   const sectionIds = rubric.sections.map((s) => s.id);
   const allExpanded =
@@ -1997,47 +2012,71 @@ function CallScoreCard({ rubric, result, isRatingGuide, call }) {
             {call.outcome === 'converted' ? 'Lead converted' : 'Lead lost'}
           </p>
         </div>
-        <button
-          type="button"
-          className="link-btn"
-          onClick={allExpanded ? collapseAll : expandAll}
-        >
-          {allExpanded ? 'Collapse all' : 'Expand all'}
-        </button>
+        <div className="call-score-header-actions">
+          <div className="call-score-options-menu" ref={optionsRef}>
+            <button
+              type="button"
+              className={`call-score-options-btn ${optionsActive ? 'active' : ''}`}
+              aria-label="View options"
+              aria-expanded={optionsOpen}
+              onClick={() => setOptionsOpen((v) => !v)}
+            >
+              <svg width={16} height={16} viewBox="0 0 16 16" fill="none" aria-hidden>
+                <path
+                  d="M2 5h6M11 5h3M2 11h3M8 11h6"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+                <circle cx="9.5" cy="5" r="1.8" fill="currentColor" />
+                <circle cx="6.5" cy="11" r="1.8" fill="currentColor" />
+              </svg>
+            </button>
+            {optionsOpen && (
+              <div className="call-score-options-pop" role="menu">
+                <label className="toggle-row block preview-option">
+                  <input
+                    type="checkbox"
+                    checked={showAiConfidence}
+                    onChange={(e) => setShowAiConfidence(e.target.checked)}
+                  />
+                  <span>Show AI confidence</span>
+                </label>
+                <label className="toggle-row block preview-option">
+                  <input
+                    type="checkbox"
+                    checked={showRecordingDetails}
+                    onChange={(e) => setShowRecordingDetails(e.target.checked)}
+                  />
+                  <span>
+                    {isRatingGuide
+                      ? 'Show recording details for each stage'
+                      : 'Show recording details for each attribute'}
+                  </span>
+                </label>
+              </div>
+            )}
+          </div>
+          <button
+            type="button"
+            className="link-btn"
+            onClick={allExpanded ? collapseAll : expandAll}
+          >
+            {allExpanded ? 'Collapse all' : 'Expand all'}
+          </button>
+        </div>
       </div>
       <CollapsibleSection
         title="Call source"
         open={sourceOpen}
         onToggle={setSourceOpen}
-        className="call-source-section"
+        className="call-source-section call-source-light"
       >
         <div className="call-source">
           <p className="transcript">{call.excerpt}</p>
           <RecordingPlayer durationLabel={call.duration} />
         </div>
       </CollapsibleSection>
-      <div className="preview-display-options call-score-options">
-        <label className="toggle-row block preview-option">
-          <input
-            type="checkbox"
-            checked={showAiConfidence}
-            onChange={(e) => setShowAiConfidence(e.target.checked)}
-          />
-          <span>Show AI confidence</span>
-        </label>
-        <label className="toggle-row block preview-option">
-          <input
-            type="checkbox"
-            checked={showRecordingDetails}
-            onChange={(e) => setShowRecordingDetails(e.target.checked)}
-          />
-          <span>
-            {isRatingGuide
-              ? 'Show recording details for each stage'
-              : 'Show recording details for each attribute'}
-          </span>
-        </label>
-      </div>
       <ScoreBreakdown
         result={result}
         rubric={rubric}
