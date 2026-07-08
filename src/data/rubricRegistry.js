@@ -117,7 +117,7 @@ function createProductReturnRubricDraft(name, callType, generationPrompt) {
       {
         id: 'get-to-know',
         name: 'Get to know your customer',
-        weight: 0.2,
+        weight: 0.15,
         attributes: sectionAttrsFromItems([
           {
             id: 'greet-return',
@@ -142,7 +142,7 @@ function createProductReturnRubricDraft(name, callType, generationPrompt) {
       {
         id: 'verification',
         name: 'Verification',
-        weight: 0.25,
+        weight: 0.4,
         attributes: sectionAttrsFromItems([
           {
             id: 'order-details-return',
@@ -204,7 +204,7 @@ function createProductReturnRubricDraft(name, callType, generationPrompt) {
       {
         id: 'closing',
         name: 'Closing',
-        weight: 0.2,
+        weight: 0.1,
         attributes: sectionAttrsFromItems([
           {
             id: 'proper-closing-return',

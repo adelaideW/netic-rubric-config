@@ -76,7 +76,7 @@ export const defaultRubric = {
     {
       id: 'get-to-know',
       name: 'Get to know your customer',
-      weight: 0.2,
+      weight: 0.15,
       attributes: sectionAttrs([
         {
           id: 'greet',
@@ -100,7 +100,7 @@ export const defaultRubric = {
     {
       id: 'verification',
       name: 'Verification',
-      weight: 0.25,
+      weight: 0.4,
       attributes: sectionAttrs([
         {
           id: 'issue-details',
@@ -151,7 +151,7 @@ export const defaultRubric = {
     {
       id: 'closing',
       name: 'Closing',
-      weight: 0.2,
+      weight: 0.1,
       attributes: sectionAttrs([
         {
           id: 'proper-closing',

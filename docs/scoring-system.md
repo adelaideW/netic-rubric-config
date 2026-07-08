@@ -70,7 +70,7 @@ Stages and attributes both use the same custom-weight behavior:
 - Editing a weight **locks** it; remaining **unlocked** weights split what's left equally.
 - Locked weights are never auto-shrunk — if a set doesn't total 100%, the UI **warns** with the exact target value instead of silently rebalancing.
 - A weight can't be **0%**.
-- Default stage weights: **20 / 25 / 35 / 20**.
+- Default stage weights: **15 / 40 / 35 / 10** (Get to know / Verification / Inform and educate / Closing).
 
 ## Required gate
 
