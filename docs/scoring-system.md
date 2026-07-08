@@ -1,135 +1,222 @@
 # Netic Call Scoring System — Specification
 
-Unified model for CXR managers: weighted stages, per-attribute (or per-stage) scoring, a Required stage gate, and versioned rubrics.
+**Version:** V1 (Weighted Checklist), preferred design  
+**Scope:** Lead call rubrics — HVAC, plumbing, and similar home-services contexts
 
-## Structure
+---
+
+## 1. Purpose
+
+The scoring system gives CXR managers a structured, auditable way to evaluate phone calls. Each call is scored against a rubric that defines what "good" looks like at the stage and attribute level. Scores drive coaching decisions and surface team-wide patterns in the performance dashboard.
+
+---
+
+## 2. Data model
 
 ```
-Rubric → Stages (weights sum to 100%) → Attributes (weights within stage)
+Rubric
+ └── Stage  (× N, each with a weight)
+      └── Attribute  (× N per stage, each with a scoring mode and weight)
 ```
 
-## Scoring models
+A rubric groups related **stages** (phases of the call). Each stage contains **attributes** — individual behaviors the CXR is evaluated on. Both stages and attributes carry weights that determine how much they contribute to the final score.
 
-A rubric runs one of two scoring models, switchable from the attribute-checklist header.
+---
 
-| Model | How a stage is scored |
+## 3. Scoring models
+
+A rubric runs one of two scoring models, switchable from the attribute-checklist header. Both models share the same overall formula.
+
+| Model | How stages are scored |
 |-------|-----------------------|
-| **V1 — Weighted checklist** (preferred) | Each attribute is scored, the scores are combined by attribute weight, then weighted by stage weight |
-| **V2 — Rating guide** (exploration) | Each stage is rated 1–5 against a written rating guide, normalized to a percentage, then weighted by stage weight |
+| **V1 — Weighted checklist** *(preferred)* | Each attribute is scored individually, combined by attribute weight, then multiplied by stage weight |
+| **V2 — Rating guide** *(design exploration)* | Each stage is given a holistic 1–5 rating against a written level guide, normalized to a percentage, then multiplied by stage weight |
 
-> **Design note:** **V1 (weighted checklist) is the preferred final design** — its per-attribute scoring, weights, and Required gate give CXR managers granular, auditable control over exactly what each call is measured on. V2 (rating guide) was an **exploration** of a holistic, level-based alternative. Both are kept in the prototype so the two directions can be compared.
+> **Design rationale:** V1 is the preferred final design. Per-attribute scoring with a Required gate gives managers granular, auditable control — managers can pinpoint which behavior missed, not just that a stage scored low. V2 was explored as a faster, more holistic alternative and is retained in the prototype for comparison.
 
-### V2 — Rating guide (exploration)
+---
 
-- Each stage has a **rating guide**: an ordered list of levels (default **1–5**) with a written description of the behavior expected at each level.
-- One level is marked the **minimum standard**. A stage rated below that level is **failed** and flagged for coaching.
-- The AI picks the level whose description best matches the call; that rating drives the stage score.
-- No per-attribute Required gate — the stage is judged as a whole against the guide.
+## 4. Core formulas
 
-## Terminology & formula
-
-| Term | Meaning | Range |
-|------|---------|-------|
-| **Attribute score** | An individual attribute's result | 0–100 |
-| **Stage score** | A stage's weighted contribution to the call, in points | 0–stage weight |
-| **Overall call score** | Sum of all stage scores | 0–100 |
+### V1 — Weighted checklist
 
 ```
-V1  Stage score = Σ (attribute score × attribute weight) × stage weight
-V2  Stage score = (rating ÷ max rating) × 100 × stage weight
-
-Overall call score = Σ (stage scores)
+Stage score   = Σ (attribute score × attribute weight) × stage weight
+Call score    = Σ (stage scores)
 ```
 
-These formulas match the **"How rubric scoring works"** panel and the tooltips in the prototype.
+### V2 — Rating guide
 
-## Stage details
+```
+Stage score   = (rating ÷ max rating) × 100 × stage weight
+Call score    = Σ (stage scores)
+```
 
-- **Weight** — each stage has a weight; stage weights sum to 100%.
-- **Stage score** — the stage's weighted contribution in points (see formula above); the score breakdown shows each stage's contribution and hovering reveals the full calculation.
-- A stage's raw 0–100 result is shown on the stage header; the **stage score** (points) is what rolls up into the overall call score.
+**Terminology**
 
-## Attribute details (V1)
+| Term | Definition | Range |
+|------|-----------|-------|
+| Attribute score | The result of scoring one attribute | 0–100 |
+| Stage score | A stage's weighted point contribution to the call | 0–stage weight |
+| Call score | Sum of all stage scores | 0–100 |
 
-Each attribute has a **scoring mode**:
+These formulas match the **"How rubric scoring works"** panel and all hover tooltips in the prototype.
 
-| Mode | Label in UI | Attribute score |
-|------|-------------|-----------------|
-| **Binary** | Pass/Fail | Pass = 100, Fail = 0 (partial credit is disabled in this prototype) |
-| **Granular** | Percentage | AI returns 0–100% |
-| **Numeric** | Numeric | AI returns a raw value in `[min, max]`, normalized to 0–100 (`(value − min) / (max − min) × 100`). Default max = **5** |
+---
 
-Managers who need graded scoring can adopt the advanced **Percentage** or **Numeric** modes instead of Pass/Fail.
+## 5. Stages
 
-Each attribute can also be marked **Required** (see Required gate below).
+- A rubric has one or more stages, each representing a phase of the call (e.g., Verification, Closing).
+- Each stage has a **weight** — its maximum contribution to the call score in points.
+- Stage weights must total **100%**.
+- Default stage weights for the Lead calls rubric:
 
-## Weights
+| Stage | Default weight |
+|-------|---------------|
+| Get to know your customer | 15% |
+| Verification | 40% |
+| Inform and educate | 35% |
+| Closing | 10% |
 
-Stages and attributes both use the same custom-weight behavior:
+### Stage weight behavior
 
-- Editing a weight **locks** it; remaining **unlocked** weights split what's left equally.
-- Locked weights are never auto-shrunk — if a set doesn't total 100%, the UI **warns** with the exact target value instead of silently rebalancing.
-- A weight can't be **0%**.
-- Default stage weights: **15 / 40 / 35 / 10** (Get to know / Verification / Inform and educate / Closing).
+- Editing a stage weight **locks** it.
+- Remaining unlocked stages share what's left equally.
+- Locked weights are never auto-shrunk. If the total exceeds or falls short of 100%, the UI shows a warning with the exact correction target.
+- A weight of **0%** is not allowed.
 
-## Required gate
+---
 
-A **Required** attribute counts as missed when:
+## 6. Attributes (V1)
 
-- **Binary:** Fail (or Partial when partial credit is off)
-- **Granular / Numeric:** attribute score below the required pass threshold (default **60%**)
+Each attribute represents a specific observable behavior. Attributes have a **scoring mode** and optional **weight** within their stage.
 
-When any required attribute is missed in a stage:
+### 6.1 Scoring modes
 
-- The stage's raw result is **capped below 60**, so a single critical miss can't leave the stage looking passable.
-- The stage is flagged **coaching needed** (the cap banner replaces a separate coaching badge to avoid redundancy).
+| Mode | UI label | How the attribute score is determined |
+|------|----------|--------------------------------------|
+| **Binary** | Pass/Fail | Pass = 100, Fail = 0. Partial credit is disabled in this prototype. |
+| **Granular** | Percentage | AI returns a value 0–100%. |
+| **Numeric** | Numeric | AI returns a raw value between a configurable min and max, normalized to 0–100 using `(value − min) / (max − min) × 100`. Default range: 0–5. |
 
-## Coaching flags
+Use Pass/Fail for single, binary behaviors. Use Percentage or Numeric when the AI needs to grade partial completion (e.g., "verified 3 of 4 customer fields").
 
-A call **needs coaching** when any of these are true:
+### 6.2 Attribute weights
 
-- Overall call score is below the coaching threshold (default **60%**), **or**
-- Any stage has a required miss (V1) or is rated below its minimum standard (V2), **or**
-- (Optional) per-stage coaching thresholds are enabled and a stage's contribution falls below its threshold.
+- By default, all attributes within a stage are **equally weighted**.
+- A manager can switch to **custom weights** per attribute.
+- Custom weight behavior mirrors stage weights: editing a weight locks it; unlocked attributes rebalance equally; no weight can be 0%; a warning appears if the set doesn't total 100%.
 
-Defaults:
+### 6.3 Required flag
 
-- **Coaching threshold (overall):** 60%
-- **Required pass threshold:** 60%
-- **Detailed per-stage threshold:** 60% of each stage's max when enabled — editable up to 100% per stage.
+An attribute can be marked **Required**. See section 7.
 
-Stages are individually flagged when they fail (required miss / below minimum standard) or fall below the stage flag threshold (default **60**).
+---
 
-## Display rules
+## 7. Required gate
 
-Three number types — always labeled, never mixed:
+The Required flag marks an attribute as a non-negotiable behavior. A miss on a Required attribute cannot be offset by strong performance elsewhere in the stage.
 
-- **Attribute level:** outcome. Pass/Fail badge (Binary), numeric % (Granular), or normalized value (Numeric). A **weight % badge** shows first next to the attribute title, followed by the **Required** badge (with an explanatory tooltip).
-- **Stage level:** the stage's raw 0–100 result, with an expandable tooltip showing the full `Σ (attribute score × attribute weight) × stage weight` calculation.
-- **Call level:** overall score in the gauge, plus each **stage score** contribution; hovering shows `Overall call score = Σ (stage scores)`.
+### When a Required attribute is missed
 
-**AI confidence** (High / Medium / Low) is separate metadata, shown as "AI: High" with a tooltip — never mixed with performance numbers.
+A Required attribute counts as missed when:
 
-## Configuration surfaces (editor tabs)
+| Mode | Miss condition |
+|------|---------------|
+| Binary | Fail result |
+| Percentage / Numeric | Attribute score below the required pass threshold (default **60%**) |
 
-| Tab | Purpose |
-|-----|---------|
-| **Preview** | Read-only walkthrough scoring a sample call; entry point when opening a rubric |
-| **Details** | Stages + stage weights, attribute mode, Required, and attribute weights |
-| **Coaching** | Coaching threshold, optional per-stage thresholds, and coaching material |
-| **Versions** | Version history; view a past version read-only or publish it (rollback) |
+### Consequences
 
-## Versioning
+When any Required attribute is missed in a stage:
 
-- Changes auto-save as a **draft** ("Draft saved · just now"); **Publish** is enabled only when there are unsaved changes.
-- A version pill near the rubric title exposes version history.
-- Publishing mints a new version (with an optional "What changed?" note); viewing a past version is read-only and can be re-published via a confirmation modal to roll back.
-- Call records carry a **Scored by v#** tag so results always trace to the rubric version that produced them.
+1. The stage score is **capped below 60** (at 59), regardless of other attribute scores.
+2. The stage is flagged with a "Required attribute missed — coaching needed" banner.
+3. No separate "Coaching needed" badge is shown on the stage (the banner covers it).
 
-## Team performance
+This is intentional: a single critical miss cannot leave a stage looking passable.
 
-- **KPIs:** total employees, lead calls, leads converted, leads won.
-- **Average call score** donut with per-stage contributions in the legend (points + %, formula on hover).
-- **Lead funnel** bar chart: calls taken → lead calls → converted → won (count + %).
-- **AI summary** (collapsible): lost-lead drivers, who needs coaching, suggested material.
-- **Call performance** log with search + filters (date, agent, call type); selecting a call opens the full **Call score** breakdown and a **Call source** section (recording + summary).
+---
+
+## 8. Coaching thresholds and flags
+
+### 8.1 When a call is flagged for coaching
+
+A call is flagged when **any** of the following are true:
+
+- The overall call score is below the **coaching threshold** (default **60%**)
+- Any stage has a Required attribute miss (V1) or is rated below its minimum standard (V2)
+- *(Optional)* Per-stage detailed thresholds are enabled and a stage's score falls below its stage threshold
+
+### 8.2 Default thresholds
+
+| Setting | Default |
+|---------|---------|
+| Overall coaching threshold | 60% |
+| Required attribute pass threshold | 60% |
+| Per-stage threshold (when enabled) | 60% of each stage's max contribution |
+
+### 8.3 Per-stage detailed thresholds
+
+When enabled (opt-in toggle on the Coaching tab), each stage gets its own threshold, editable from 0% up to 100%. Stages that fall below their threshold are individually flagged, even if the overall call score is above the coaching threshold.
+
+### 8.4 V2 coaching flags
+
+In V2, each stage's rating guide has one level marked as the **minimum standard**. A stage rated below that level is treated as failed and flagged for coaching.
+
+---
+
+## 9. Display rules
+
+Three number types appear in the UI. They are always labeled and never mixed without context.
+
+| Level | What is shown | Notes |
+|-------|--------------|-------|
+| **Attribute** | Outcome badge (Pass/Fail, %, or numeric value) | Weight % badge appears first, then Required badge if applicable |
+| **Stage** | Raw 0–100 result on the stage header | Hover tooltip shows the full calculation |
+| **Call** | Overall score in the gauge | Hover shows `Call score = Σ (stage scores) = X + Y + Z = N` |
+
+**AI confidence** (High / Medium / Low) is separate metadata. It is always labeled "AI: High / Medium / Low" and never combined with performance numbers.
+
+---
+
+## 10. Versioning
+
+Changes to a rubric are auto-saved as a **draft**. Drafts do not affect scoring of new calls until published.
+
+| Action | Behavior |
+|--------|----------|
+| Edit a rubric | Changes auto-save; header shows "Draft saved · just now" |
+| Publish | Mints a new version with an optional "What changed?" note; Publish button is disabled if there are no unsaved changes |
+| View past version | Opens read-only; Publish is available to trigger a rollback |
+| Rollback | Requires a confirmation modal; creates a new version from the old snapshot |
+
+Call records carry a **Scored by v#** tag, so any score can always be traced back to the exact rubric version that produced it.
+
+---
+
+## 11. Editor configuration surfaces
+
+| Tab | What a manager configures |
+|-----|--------------------------|
+| **Preview** | Read-only; select a sample call and see the full score breakdown in context |
+| **Details** | Stages and their weights; per-attribute scoring mode, Required flag, and attribute weights |
+| **Coaching** | Overall coaching threshold (with pts/% unit toggle), optional per-stage detailed thresholds, coaching material, email/escalation rules |
+| **Versions** | Full version history table; view or roll back any past version |
+
+---
+
+## 12. Team performance dashboard
+
+The dashboard gives managers a read of team health driven by the active rubric.
+
+| Component | What it shows |
+|-----------|--------------|
+| **KPI cards** | Total employees, lead calls taken, leads converted, leads won |
+| **Average call score (donut)** | Team-wide average, broken down by each stage's contribution; hover for formula |
+| **Lead funnel (bar chart)** | Calls → lead calls → converted → won (count + %) |
+| **AI summary** | Collapsible; drivers of lost leads, agents flagged for coaching, suggested material |
+| **Call performance table** | Per-call log; searchable and filterable by date, agent, call type |
+| **Call score panel** | Detailed breakdown for the selected call; collapsible **Call source** with transcript and recording player |
+
+Filter state, search, date range, and AI summary collapse state persist in `localStorage` across sessions.
