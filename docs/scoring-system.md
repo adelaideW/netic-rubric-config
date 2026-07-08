@@ -2,7 +2,6 @@
 
 **Product:** Rubric Configuration + Call Scoring System
 **Designer:** Adelaide Wang
-**Version:** 1.0
 **Scope:** Lead calls only — CXR Manager configuration experience
 
 ---
