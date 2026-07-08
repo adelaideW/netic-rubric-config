@@ -1,0 +1,20 @@
+{
+  "name": "netic-rubric-config",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port=5180 --host=127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --port=5180",
+    "deploy": "npx vercel deploy --yes"
+  },
+  "dependencies": {
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.1",
+    "vite": "^8.0.12"
+  }
+}
