@@ -1,5 +1,6 @@
 import { cloneRubric, createEmptySection, defaultRubric, CALL_TYPE } from './defaultRubric.js';
 import { EDITOR_VERSIONS } from './ratingGuideV2.js';
+import { teamSummary } from './sampleCalls.js';
 
 /** Simulated customer onboarding date for the system default rubric */
 export const ONBOARDED_AT = '2026-03-12T14:30:00Z';
@@ -288,7 +289,8 @@ export function createInitialRegistry() {
       isSystemDefault: true,
       onboardedAt: now,
       lastUpdatedAt: now,
-      callsScored: 1284,
+      // Matches the team performance dashboard's lead-call count (101).
+      callsScored: teamSummary.leadCalls,
     },
   ];
 }
