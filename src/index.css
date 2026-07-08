@@ -4120,6 +4120,17 @@ select:focus {
   outline: none;
 }
 
+.hover-tooltip-anchor.score-circle-tip {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  cursor: help;
+}
+
+.score-circle.has-formula {
+  cursor: help;
+}
+
 .hover-tooltip-bubble {
   position: fixed;
   transform: translate(-50%, calc(-100% - 8px));

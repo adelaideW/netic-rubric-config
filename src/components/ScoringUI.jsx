@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { ATTR_MODE, EVAL, WEIGHT_MODE } from '../data/defaultRubric.js';
 import { EDITOR_VERSIONS } from '../data/ratingGuideV2.js';
+import { HoverTooltip } from './HoverTooltip.jsx';
 import { IconInfo } from './HubUI.jsx';
 import {
   attributeWeightBadgePercent,
@@ -183,6 +184,22 @@ function contributionFormulaTooltip(section, stageScore, contribution) {
   return `${weight}% (stage weight) × ${stageScore}% (${avgLabel}) = ${points}`;
 }
 
+function overallScoreFormula(rubric, result) {
+  const parts = rubric.sections.map((section) =>
+    Math.round(result.bySection[section.id]?.contribution ?? 0),
+  );
+  const sum = parts.reduce((total, value) => total + value, 0);
+  const diff = result.overall - sum;
+  if (diff !== 0 && parts.length > 0) {
+    let maxIdx = 0;
+    for (let i = 1; i < parts.length; i += 1) {
+      if (parts[i] > parts[maxIdx]) maxIdx = i;
+    }
+    parts[maxIdx] += diff;
+  }
+  return `Call score = Σ (stage score × stage weight) = ${parts.join(' + ')} = ${result.overall}`;
+}
+
 export function StageEvalGroup({
   section,
   stageResult,
@@ -240,13 +257,19 @@ export function StageEvalGroup({
   );
 }
 
-export function ScoreCircle({ score, size = 'lg', label = 'Overall' }) {
+export function ScoreCircle({ score, size = 'lg', label = 'Overall', formula = null }) {
   const cls = score < 60 ? 'low' : score < 80 ? 'mid' : 'high';
-  return (
-    <div className={`score-circle ${cls} ${size}`}>
+  const circle = (
+    <div className={`score-circle ${cls} ${size} ${formula ? 'has-formula' : ''}`}>
       <span className="score-num">{score}</span>
       <span className="score-lbl">{label}</span>
     </div>
+  );
+  if (!formula) return circle;
+  return (
+    <HoverTooltip label={formula} className="score-circle-tip">
+      {circle}
+    </HoverTooltip>
   );
 }
 
@@ -262,7 +285,10 @@ export function ScoreBreakdown({
 }) {
   return (
     <div className="score-breakdown">
-      <ScoreCircle score={result.overall} />
+      <ScoreCircle
+        score={result.overall}
+        formula={overallScoreFormula(rubric, result)}
+      />
       {result.failedSections?.length > 0 && (
         <div className="coaching-flag section-fail-flag">
           {isRatingGuide
