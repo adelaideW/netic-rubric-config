@@ -2391,7 +2391,7 @@ function DashboardView({ rubric }) {
               {stageContribs.map((s, i) => {
                 const flagged = s.avg < threshold;
                 const points = Math.round(s.contribution);
-                const formula = `${s.weightPct}% (stage weight) × ${s.avg}% (stage score) = ${points} pts`;
+                const formula = `${s.avg}% (stage score) × ${s.weightPct}% (stage weight) = ${points} pts`;
                 return (
                   <li key={s.id} className="avg-legend-row">
                     <span

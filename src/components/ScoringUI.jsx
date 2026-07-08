@@ -82,7 +82,7 @@ function ratingStageScoreFormula(section, data) {
   const weight = sectionWeightPercent(section.weight);
   const points = Math.round(data.contribution);
   const stageScore = Math.round((data.rating / data.maxRating) * 100);
-  return `${weight}% (stage weight) × ${stageScore}% (Rate ${data.rating}/${data.maxRating}) = ${points} pts`;
+  return `${stageScore}% (stage score, Rate ${data.rating}/${data.maxRating}) × ${weight}% (stage weight) = ${points} pts`;
 }
 
 function RatingStageDetail({
@@ -137,7 +137,14 @@ export function AttributeEvalRow({
           {weightPercent != null && (
             <span className="mini-badge weight custom inline">{weightPercent}%</span>
           )}
-          {attr.required && <span className="mini-badge req inline">Required</span>}
+          {attr.required && (
+            <HoverTooltip
+              label="If this is missed, the whole stage is capped below 60 and flagged for coaching — even if the other attributes pass."
+              className="req-badge-tip"
+            >
+              <span className="mini-badge req inline">Required</span>
+            </HoverTooltip>
+          )}
         </span>
         {hasMeta && (
           <div className="attr-score-meta">
@@ -169,19 +176,10 @@ function stageScoreHint(section) {
   return `Stage score = average of ${count} attributes (equally weighted)`;
 }
 
-function contributionAverageLabel(section) {
-  const count = section.attributes.filter((a) => a.enabled !== false).length;
-  if (sectionUsesCustomWeights(section)) {
-    return `weighted average of ${count} attributes`;
-  }
-  return `average of ${count} attributes`;
-}
-
 function contributionFormulaTooltip(section, stageScore, contribution) {
   const weight = sectionWeightPercent(section.weight);
   const points = Math.round(contribution);
-  const avgLabel = contributionAverageLabel(section);
-  return `${weight}% (stage weight) × ${stageScore}% (${avgLabel}) = ${points}`;
+  return `${stageScore}% (stage score) × ${weight}% (stage weight) = ${points}`;
 }
 
 function overallScoreFormula(rubric, result) {

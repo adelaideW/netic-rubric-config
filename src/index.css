@@ -4127,6 +4127,11 @@ select:focus {
   cursor: help;
 }
 
+.hover-tooltip-anchor.req-badge-tip {
+  vertical-align: middle;
+  cursor: help;
+}
+
 .score-circle.has-formula {
   cursor: help;
 }
