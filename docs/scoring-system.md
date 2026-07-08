@@ -1,7 +1,6 @@
 # Netic Intelligent Call Scoring — Design Specification
 
-**Product:** Rubric Configuration + Call Scoring System
-**Designer:** Adelaide Wang
+**Product:** Rubric Configuration + Call Scoring System  
 **Scope:** Lead calls only — CXR Manager configuration experience
 
 ---
