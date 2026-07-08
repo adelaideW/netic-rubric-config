@@ -194,9 +194,9 @@ function contributionFormulaTooltip(section, data) {
   const expansion = `(${terms.join(' + ')}) × ${stageWeight}%`;
   const base = 'Stage score = Σ (attribute score × attribute weight) × stage weight';
   if (data.failed) {
-    return `${base} = ${expansion} → capped below 60% (required miss) = ${points}`;
+    return `${base} =\n${expansion} → capped below 60% (required miss) = ${points}`;
   }
-  return `${base} = ${expansion} = ${points}`;
+  return `${base} =\n${expansion} = ${points}`;
 }
 
 function overallScoreFormula(rubric, result) {

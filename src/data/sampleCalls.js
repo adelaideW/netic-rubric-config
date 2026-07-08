@@ -258,18 +258,18 @@ export const teamPerformance = {
 const evalTemplateById = Object.fromEntries(sampleCalls.map((c) => [c.id, c]));
 
 const CALL_LOG_META = [
-  { id: 'CALL-2087', date: 'Jul 7, 2026', agent: 'James T.', leadSource: 'Google Ads', type: 'lead', outcome: 'converted', template: 'strong' },
-  { id: 'CALL-2086', date: 'Jul 7, 2026', agent: 'Maria G.', leadSource: 'Website form', type: 'lead', outcome: 'lost', template: 'weak-verification' },
-  { id: 'CALL-2085', date: 'Jul 6, 2026', agent: 'Dana R.', leadSource: 'Referral', type: 'lead', outcome: 'lost', template: 'critical-miss' },
-  { id: 'CALL-2084', date: 'Jul 6, 2026', agent: 'Chris L.', leadSource: 'Yelp', type: 'non-lead', outcome: 'converted', template: 'strong' },
-  { id: 'CALL-2083', date: 'Jul 5, 2026', agent: 'James T.', leadSource: 'Facebook', type: 'lead', outcome: 'converted', template: 'weak-verification' },
-  { id: 'CALL-2082', date: 'Jul 5, 2026', agent: 'Maria G.', leadSource: 'Google Ads', type: 'non-lead', outcome: 'lost', template: 'critical-miss' },
-  { id: 'CALL-2081', date: 'Jul 5, 2026', agent: 'Dana R.', leadSource: 'Website form', type: 'lead', outcome: 'converted', template: 'strong' },
-  { id: 'CALL-2080', date: 'Jul 4, 2026', agent: 'Chris L.', leadSource: 'Referral', type: 'lead', outcome: 'lost', template: 'weak-verification' },
-  { id: 'CALL-2079', date: 'Jul 4, 2026', agent: 'James T.', leadSource: 'Yelp', type: 'non-lead', outcome: 'converted', template: 'strong' },
-  { id: 'CALL-2078', date: 'Jul 4, 2026', agent: 'Maria G.', leadSource: 'Facebook', type: 'lead', outcome: 'lost', template: 'critical-miss' },
-  { id: 'CALL-2077', date: 'Jul 3, 2026', agent: 'Dana R.', leadSource: 'Google Ads', type: 'lead', outcome: 'lost', template: 'weak-verification' },
-  { id: 'CALL-2076', date: 'Jul 3, 2026', agent: 'Chris L.', leadSource: 'Website form', type: 'non-lead', outcome: 'converted', template: 'strong' },
+  { id: 'CALL-2087', date: 'Jul 7, 2026', agent: 'James T.', leadSource: 'Google Ads', type: 'lead', outcome: 'converted', template: 'strong', version: 3 },
+  { id: 'CALL-2086', date: 'Jul 7, 2026', agent: 'Maria G.', leadSource: 'Website form', type: 'lead', outcome: 'lost', template: 'weak-verification', version: 3 },
+  { id: 'CALL-2085', date: 'Jul 6, 2026', agent: 'Dana R.', leadSource: 'Referral', type: 'lead', outcome: 'lost', template: 'critical-miss', version: 2 },
+  { id: 'CALL-2084', date: 'Jul 6, 2026', agent: 'Chris L.', leadSource: 'Yelp', type: 'non-lead', outcome: 'converted', template: 'strong', version: 2 },
+  { id: 'CALL-2083', date: 'Jul 5, 2026', agent: 'James T.', leadSource: 'Facebook', type: 'lead', outcome: 'converted', template: 'weak-verification', version: 2 },
+  { id: 'CALL-2082', date: 'Jul 5, 2026', agent: 'Maria G.', leadSource: 'Google Ads', type: 'non-lead', outcome: 'lost', template: 'critical-miss', version: 2 },
+  { id: 'CALL-2081', date: 'Jul 5, 2026', agent: 'Dana R.', leadSource: 'Website form', type: 'lead', outcome: 'converted', template: 'strong', version: 2 },
+  { id: 'CALL-2080', date: 'Jul 4, 2026', agent: 'Chris L.', leadSource: 'Referral', type: 'lead', outcome: 'lost', template: 'weak-verification', version: 1 },
+  { id: 'CALL-2079', date: 'Jul 4, 2026', agent: 'James T.', leadSource: 'Yelp', type: 'non-lead', outcome: 'converted', template: 'strong', version: 1 },
+  { id: 'CALL-2078', date: 'Jul 4, 2026', agent: 'Maria G.', leadSource: 'Facebook', type: 'lead', outcome: 'lost', template: 'critical-miss', version: 1 },
+  { id: 'CALL-2077', date: 'Jul 3, 2026', agent: 'Dana R.', leadSource: 'Google Ads', type: 'lead', outcome: 'lost', template: 'weak-verification', version: 1 },
+  { id: 'CALL-2076', date: 'Jul 3, 2026', agent: 'Chris L.', leadSource: 'Website form', type: 'non-lead', outcome: 'converted', template: 'strong', version: 1 },
 ];
 
 /** Per-call recordings shown in the Call performance log. */
@@ -282,6 +282,7 @@ export const callLog = CALL_LOG_META.map((meta) => {
     leadSource: meta.leadSource,
     type: meta.type,
     outcome: meta.outcome,
+    version: meta.version,
     duration: template.duration,
     excerpt: template.excerpt,
     evaluations: template.evaluations,

@@ -214,6 +214,25 @@ export function sectionUsesCustomWeights(section) {
   return enabledAttributes(section).some(isCustomWeight);
 }
 
+// Stage weights mirror attribute custom weights: editing a stage locks it, and
+// the remaining unlocked stages share what's left equally. When locked stages
+// exceed 100% the totals warn instead of auto-shrinking.
+export function rebalanceUnlockedSectionWeights(sections) {
+  const locked = sections.filter((s) => s.weightLocked);
+  const unlocked = sections.filter((s) => !s.weightLocked);
+  const lockedSum = locked.reduce((sum, s) => sum + (s.weight ?? 0), 0);
+  const remaining = Math.max(0, 1 - lockedSum);
+  const share = unlocked.length > 0 ? remaining / unlocked.length : 0;
+  return sections.map((s) => (s.weightLocked ? s : { ...s, weight: share }));
+}
+
+export function applySectionCustomWeight(sections, changedId, newWeight) {
+  const withLock = sections.map((s) =>
+    s.id === changedId ? { ...s, weight: newWeight, weightLocked: true } : s,
+  );
+  return rebalanceUnlockedSectionWeights(withLock);
+}
+
 export function convertSectionToCustomWeights(section) {
   const enabled = enabledAttributes(section);
   const share = enabled.length ? 1 / enabled.length : 1;

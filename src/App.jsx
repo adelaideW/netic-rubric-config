@@ -9,6 +9,7 @@ import {
   usesLeadTemplateFromPrompt,
 } from './data/rubricRegistry.js';
 import { sampleCalls, callLog, teamPerformance, teamSummary } from './data/sampleCalls.js';
+import { rubricVersions, DEFAULT_ACTIVE_VERSION_ID } from './data/versions.js';
 import {
   applyAttributeCustomWeight,
   attributeWeightBadgePercent,
@@ -21,7 +22,8 @@ import {
   defaultSectionCoachingThresholds,
   getCoachingThresholdUnit,
   getSectionCoachingThreshold,
-  normalizeSectionWeights,
+  applySectionCustomWeight,
+  rebalanceUnlockedSectionWeights,
   resetSectionToEqualWeights,
   scoreCall,
   sectionThresholdDisplayToPoints,
@@ -66,13 +68,14 @@ import {
   IconTrash,
 } from './components/HubUI.jsx';
 
-const VIEWS = ['hub', 'edit', 'scoring', 'preview', 'dashboard'];
+const VIEWS = ['hub', 'edit', 'scoring', 'preview', 'versions', 'dashboard'];
 const STAGE_NAME_MAX_LENGTH = 60;
 
 const EDITOR_TABS = [
   ['preview', 'Preview'],
   ['edit', 'Details'],
   ['scoring', 'Coaching'],
+  ['versions', 'Versions'],
 ];
 
 function EditorTabs({ activeTab, onTab }) {
@@ -227,6 +230,168 @@ function setUrl(view, section) {
   window.history.replaceState(null, '', `?${p}`);
 }
 
+function RubricVersionPill({ versions, activeVersionId, onViewVersion, onManageVersions }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDoc = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
+
+  const active = versions.find((v) => v.id === activeVersionId) ?? versions[0];
+
+  return (
+    <div className="version-pill-wrap" ref={ref}>
+      <button
+        type="button"
+        className="version-pill"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span className="version-pill-label">{active.label}</span>
+        <span className="version-pill-sub">· Published {active.publishedAt}</span>
+        <svg
+          className={`version-pill-chevron ${open ? 'open' : ''}`}
+          width={12}
+          height={12}
+          viewBox="0 0 12 12"
+          fill="none"
+          aria-hidden
+        >
+          <path
+            d="M3 4.5 6 7.5 9 4.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+      {open && (
+        <div className="version-pop" role="menu">
+          <div className="version-pop-head">Version history</div>
+          <ul className="version-pop-list">
+            {versions.map((v) => {
+              const isActive = v.id === activeVersionId;
+              return (
+                <li key={v.id}>
+                  <button
+                    type="button"
+                    className="version-pop-item"
+                    onClick={() => {
+                      setOpen(false);
+                      onViewVersion(v.id);
+                    }}
+                  >
+                    <span className="version-pop-item-top">
+                      <span className="version-pop-ver">{v.label}</span>
+                      {isActive ? (
+                        <span className="version-pop-badge active">Active</span>
+                      ) : (
+                        <span className="version-pop-date">Published {v.publishedAt}</span>
+                      )}
+                    </span>
+                    <span className="version-pop-summary">{v.summary}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <button
+            type="button"
+            className="version-pop-manage"
+            onClick={() => {
+              setOpen(false);
+              onManageVersions();
+            }}
+          >
+            Manage versions →
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function VersionsView({ versions, activeVersionId, onViewVersion, onPublishVersion }) {
+  return (
+    <div className="versions-view">
+      <div className="versions-card">
+        <div className="versions-card-head">
+          <h2>Version history</h2>
+          <span className="versions-count">{versions.length} versions</span>
+        </div>
+        <p className="versions-intro">
+          Each publish saves an immutable snapshot of the rubric. The active version is the
+          one currently scoring calls. Select a version to view it read-only, or publish an
+          earlier version to roll back to it.
+        </p>
+        <div className="versions-table-scroll">
+          <table className="data-table versions-table">
+            <thead>
+              <tr>
+                <th>Version</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Published</th>
+                <th aria-label="Actions" />
+              </tr>
+            </thead>
+            <tbody>
+              {versions.map((v) => {
+                const isActive = v.id === activeVersionId;
+                return (
+                  <tr
+                    key={v.id}
+                    className="versions-row"
+                    onClick={() => onViewVersion(v.id)}
+                  >
+                    <td>
+                      <div className="versions-ver-cell">
+                        <span className="versions-ver">{v.label}</span>
+                        <span className="versions-ver-summary">{v.summary}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`versions-status ${isActive ? 'active' : ''}`}>
+                        <span className="versions-status-dot" />
+                        {isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td className="versions-muted">{v.createdAt}</td>
+                    <td className="versions-muted">{v.publishedAt}</td>
+                    <td className="versions-action-cell">
+                      {isActive ? (
+                        <span className="versions-current">Current</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn-ghost btn-sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPublishVersion(v.id);
+                          }}
+                        >
+                          Publish
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AppShell({
   view,
   rubricName,
@@ -240,10 +405,23 @@ function AppShell({
   onEditorVersionChange,
   onEditorTab,
   publishDisabled = false,
+  publishDisabledReason,
+  publishLabel = 'Publish',
+  versions,
+  activeVersionId,
+  onViewVersion,
+  viewingVersion,
+  onExitViewing,
 }) {
-  const isEditing = ['edit', 'scoring', 'preview'].includes(view);
+  const isEditing = ['edit', 'scoring', 'preview', 'versions'].includes(view);
   const editorTab =
-    view === 'scoring' ? 'scoring' : view === 'preview' ? 'preview' : 'edit';
+    view === 'scoring'
+      ? 'scoring'
+      : view === 'preview'
+        ? 'preview'
+        : view === 'versions'
+          ? 'versions'
+          : 'edit';
   const nav = [
     { id: 'hub', label: 'Rubrics' },
     { id: 'dashboard', label: 'Team performance' },
@@ -292,32 +470,52 @@ function AppShell({
                   >
                     <IconEdit />
                   </button>
+                  {versions && activeVersionId != null && (
+                    <RubricVersionPill
+                      versions={versions}
+                      activeVersionId={activeVersionId}
+                      onViewVersion={onViewVersion}
+                      onManageVersions={() => onEditorTab('versions')}
+                    />
+                  )}
                 </div>
               </div>
               <div className="topbar-actions">
                 {editorVersion != null && onEditorVersionChange && (
                   <VersionDropdown version={editorVersion} onChange={onEditorVersionChange} />
                 )}
-                {dirty && <span className="unsaved">Unsaved changes</span>}
-                <button type="button" className="btn btn-ghost" onClick={onSaveAndExit}>
-                  Save and exit
-                </button>
+                {!viewingVersion && (
+                  <span className="draft-status">
+                    {dirty ? 'Draft saved · just now' : 'All changes published'}
+                  </span>
+                )}
                 <button
                   type="button"
                   className="btn btn-primary"
                   onClick={onPublish}
                   disabled={publishDisabled}
-                  title={
-                    publishDisabled
-                      ? 'Stage weights must total 100% before publishing'
-                      : undefined
-                  }
+                  title={publishDisabled ? publishDisabledReason : undefined}
                 >
-                  Publish
+                  {publishLabel}
                 </button>
               </div>
             </header>
             {editorVersion != null && <ScoringFormulaBar version={editorVersion} />}
+            {viewingVersion ? (
+              <div className="version-view-banner">
+                <span className="version-view-banner-text">
+                  Viewing <strong>{viewingVersion.label}</strong> (read-only) · Published{' '}
+                  {viewingVersion.publishedAt}
+                </span>
+                <button
+                  type="button"
+                  className="version-view-banner-exit"
+                  onClick={onExitViewing}
+                >
+                  Back to current draft
+                </button>
+              </div>
+            ) : null}
             <EditorTabs activeTab={editorTab} onTab={onEditorTab} />
           </div>
         ) : (
@@ -335,21 +533,68 @@ function AppShell({
 }
 
 function PublishModal({ onClose, onConfirm }) {
+  const [note, setNote] = useState('');
   return (
     <div className="overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h2>Publish rubric changes?</h2>
-        <p>Applies to all future lead calls. Past scores are not recalculated.</p>
+        <p>
+          This saves a new version and applies it to all future lead calls. Past scores are
+          not recalculated.
+        </p>
+        <label className="publish-note-label">
+          What changed? <span className="publish-note-optional">(optional)</span>
+          <input
+            type="text"
+            className="publish-note-input"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="e.g. Increased weight on Verification"
+            autoFocus
+          />
+        </label>
         <div className="modal-actions">
           <button type="button" className="btn btn-ghost" onClick={onClose}>
             Cancel
           </button>
-          <button type="button" className="btn btn-primary" onClick={onConfirm}>
+          <button type="button" className="btn btn-primary" onClick={() => onConfirm(note)}>
             Publish
           </button>
         </div>
       </div>
     </div>
+  );
+}
+
+function ActivateVersionModal({ version, onClose, onConfirm }) {
+  if (!version) return null;
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h2>Publish {version.label}?</h2>
+        <p>
+          This makes {version.label} the live rubric and replaces the current active version
+          for all future calls. Past scores are not recalculated.
+        </p>
+        <div className="modal-actions">
+          <button type="button" className="btn btn-ghost" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="button" className="btn btn-primary" onClick={onConfirm}>
+            Publish {version.label}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReadOnlyWrap({ active, children }) {
+  if (!active) return children;
+  return (
+    <fieldset className="readonly-wrap" disabled>
+      {children}
+    </fieldset>
   );
 }
 
@@ -993,7 +1238,9 @@ function EditorView({
         </div>
       </div>
       {!sectionSumOk && (
-        <p className="weight-sum-hint">Stage weights must total 100%</p>
+        <p className="weight-sum-hint">
+          Stage weights total {Math.round(sectionSum * 100)}% — adjust so they total 100%
+        </p>
       )}
       <div
         className={`stage-list ${draggingSectionId ? 'is-dragging' : ''}`}
@@ -1691,7 +1938,16 @@ function RecordingPlayer({ durationLabel }) {
   );
 }
 
-function PreviewView({ rubric, sampleCallId, onSampleChange, result, isRatingGuide, onEdit }) {
+function CallSourceCard({ call }) {
+  return (
+    <div className="call-source-card">
+      <RecordingPlayer durationLabel={call.duration} />
+      <p className="transcript">{call.excerpt}</p>
+    </div>
+  );
+}
+
+function PreviewView({ rubric, sampleCallId, onSampleChange, result, isRatingGuide, onEdit, readOnly }) {
   const call = sampleCalls.find((c) => c.id === sampleCallId);
   const [expandedSections, setExpandedSections] = useState(
     () => new Set(rubric.sections.map((s) => s.id)),
@@ -1734,13 +1990,17 @@ function PreviewView({ rubric, sampleCallId, onSampleChange, result, isRatingGui
         <div>
           <h2>Preview</h2>
           <p className="hint">
-            See how this rubric scores a sample call. Switch to editing to change the setup.
+            {readOnly
+              ? 'See how this version scores a sample call. This is a read-only snapshot.'
+              : 'See how this rubric scores a sample call. Switch to editing to change the setup.'}
           </p>
         </div>
-        <button type="button" className="btn btn-primary preview-edit-btn" onClick={onEdit}>
-          <IconEdit />
-          Edit rubric
-        </button>
+        {!readOnly && (
+          <button type="button" className="btn btn-primary preview-edit-btn" onClick={onEdit}>
+            <IconEdit />
+            Edit rubric
+          </button>
+        )}
       </div>
       <div className="preview-layout">
         <div className="transcript-panel">
@@ -1756,8 +2016,7 @@ function PreviewView({ rubric, sampleCallId, onSampleChange, result, isRatingGui
           <div className="call-meta">
             {call.agent} · {call.duration} · {call.booked ? 'Lead converted' : 'Lead lost'}
           </div>
-          <p className="transcript">{call.excerpt}</p>
-          <RecordingPlayer durationLabel={call.duration} />
+          <CallSourceCard call={call} />
           <div className="preview-display-options">
             <label className="toggle-row block preview-option">
               <input
@@ -2011,6 +2270,9 @@ function CallScoreCard({ rubric, result, isRatingGuide, call }) {
           <p className="call-score-meta">
             {call.id} · {call.agent} · {call.date} ·{' '}
             {call.outcome === 'converted' ? 'Lead converted' : 'Lead lost'}
+            {call.version != null && (
+              <span className="scored-by-tag">Scored by v{call.version}</span>
+            )}
           </p>
         </div>
         <div className="call-score-header-actions">
@@ -2074,8 +2336,7 @@ function CallScoreCard({ rubric, result, isRatingGuide, call }) {
         className="call-source-section call-source-light"
       >
         <div className="call-source">
-          <p className="transcript">{call.excerpt}</p>
-          <RecordingPlayer durationLabel={call.duration} />
+          <CallSourceCard call={call} />
         </div>
       </CollapsibleSection>
       <ScoreBreakdown
@@ -2651,12 +2912,17 @@ function DashboardView({ rubric }) {
                           {(() => {
                             const delta = result.overall - overallAvg;
                             return (
-                              <span
-                                className={`delta-badge ${delta >= 0 ? 'pos' : 'neg'} call-log-delta`}
+                              <HoverTooltip
+                                label="Benchmarked to the team average score"
+                                className="call-log-delta-tip"
                               >
-                                {delta >= 0 ? '+' : ''}
-                                {delta}
-                              </span>
+                                <span
+                                  className={`delta-badge ${delta >= 0 ? 'pos' : 'neg'} call-log-delta`}
+                                >
+                                  {delta >= 0 ? '+' : ''}
+                                  {delta}
+                                </span>
+                              </HoverTooltip>
                             );
                           })()}
                         </span>
@@ -2722,14 +2988,29 @@ export default function App() {
   });
   const [selectedRatingLevelId, setSelectedRatingLevelId] = useState(null);
   const [sampleCallId, setSampleCallId] = useState('strong');
+  const [versions, setVersions] = useState(rubricVersions);
+  const [activeVersionId, setActiveVersionId] = useState(DEFAULT_ACTIVE_VERSION_ID);
+  const [viewingVersionId, setViewingVersionId] = useState(null);
+  const [activateTargetId, setActivateTargetId] = useState(null);
 
-  const editorVersion = rubric.editorVersion ?? EDITOR_VERSIONS.V1;
+  const viewingVersion = versions.find((v) => v.id === viewingVersionId) ?? null;
+  // When viewing a past version, all editor surfaces render its snapshot read-only.
+  const displayRubric = viewingVersion ? viewingVersion.rubric : rubric;
+  const readOnly = viewingVersion != null;
+
+  const editorVersion = displayRubric.editorVersion ?? EDITOR_VERSIONS.V1;
 
   const hubRows = useMemo(() => registry.map(registryToRow), [registry]);
 
-  const publishDisabled = useMemo(() => {
+  const weightsInvalid = useMemo(() => {
     return Math.abs(sectionWeightSum(rubric.sections) - 1) >= 0.01;
   }, [rubric.sections]);
+  const publishDisabled = readOnly ? false : weightsInvalid || !dirty;
+  const publishDisabledReason = weightsInvalid
+    ? 'Stage weights must total 100% before publishing'
+    : !dirty
+      ? 'Make a change before publishing'
+      : undefined;
 
   const sampleCall = sampleCalls.find((c) => c.id === sampleCallId);
   const isRatingGuide = editorVersion === EDITOR_VERSIONS.V2;
@@ -2737,15 +3018,15 @@ export default function App() {
   const previewResult = useMemo(() => {
     if (!sampleCall) return null;
     if (isRatingGuide) {
-      return scoreCallV2(rubric, sampleCall.stageRatings ?? {}, rubric.settings);
+      return scoreCallV2(displayRubric, sampleCall.stageRatings ?? {}, displayRubric.settings);
     }
     return scoreCall(
-      rubric,
+      displayRubric,
       sampleCall.evaluations,
-      rubric.settings,
+      displayRubric.settings,
       sampleCall.percents ?? {},
     );
-  }, [rubric, sampleCall, isRatingGuide]);
+  }, [displayRubric, sampleCall, isRatingGuide]);
 
   const navigate = (nextView, section) => {
     setView(nextView);
@@ -2909,7 +3190,7 @@ export default function App() {
 
   const updateWeight = (sectionId, weight) => {
     touchRubric((prev) => {
-      const sections = normalizeSectionWeights(prev.sections, sectionId, weight);
+      const sections = applySectionCustomWeight(prev.sections, sectionId, weight);
       const thresholds = { ...(prev.settings.sectionCoachingThresholds ?? {}) };
       if (thresholds[sectionId] != null) {
         const updatedSection = sections.find((s) => s.id === sectionId);
@@ -2950,17 +3231,82 @@ export default function App() {
       ),
     );
     setDirty(false);
+    setViewingVersionId(null);
     navigate('hub');
   };
 
+  const selectFirstOf = (r) => {
+    const first = r.sections[0];
+    if (!first) return undefined;
+    setSelectedSectionId(first.id);
+    setSelectedAttrId(firstAttributeId(first));
+    setSelectedRatingLevelId(null);
+    return first.id;
+  };
+
+  const handleViewVersion = (id) => {
+    const version = versions.find((v) => v.id === id);
+    if (!version) return;
+    setViewingVersionId(id);
+    selectFirstOf(version.rubric);
+    navigate('preview');
+  };
+
+  const handleExitViewing = () => {
+    setViewingVersionId(null);
+    const firstId = selectFirstOf(rubric);
+    navigate('edit', firstId);
+  };
+
+  const handleActivateVersion = () => {
+    const target = versions.find((v) => v.id === activateTargetId);
+    if (!target) return;
+    const now = new Date().toISOString();
+    const snapshot = cloneRubric(target.rubric);
+    setActiveVersionId(target.id);
+    setRubric(snapshot);
+    setRegistry((prev) =>
+      prev.map((item) =>
+        item.id !== activeRubricId
+          ? item
+          : { ...item, rubric: cloneRubric(snapshot), lastUpdatedAt: now },
+      ),
+    );
+    setDirty(false);
+    setViewingVersionId(null);
+    setActivateTargetId(null);
+    selectFirstOf(snapshot);
+    navigate('versions');
+  };
+
+  const handlePublishNewVersion = (note) => {
+    const now = new Date();
+    const nextId = versions.reduce((max, v) => Math.max(max, v.id), 0) + 1;
+    const fmtDate = now.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+    const fmtTime = now.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+    const newVersion = {
+      id: nextId,
+      label: `v${nextId}`,
+      createdAt: `${fmtDate} · ${fmtTime}`,
+      publishedAt: fmtDate,
+      summary: (note && note.trim()) || 'Updated rubric configuration.',
+      rubric: cloneRubric(rubric),
+    };
+    setVersions((prev) => [newVersion, ...prev]);
+    setActiveVersionId(nextId);
+  };
+
   const addSection = () => {
-    const newSection = createEmptySection('New stage');
+    const newSection = { ...createEmptySection('New stage'), weightLocked: false };
     touchRubric((prev) => {
-      const sections = normalizeSectionWeights(
-        [...prev.sections, newSection],
-        newSection.id,
-        0.1,
-      );
+      const sections = rebalanceUnlockedSectionWeights([...prev.sections, newSection]);
       return { ...prev, sections };
     });
     setSelectedSectionId(newSection.id);
@@ -2985,8 +3331,7 @@ export default function App() {
   const removeSection = (sectionId) => {
     touchRubric((prev) => {
       const remaining = prev.sections.filter((s) => s.id !== sectionId);
-      const sum = remaining.reduce((t, s) => t + s.weight, 0);
-      const sections = remaining.map((s) => ({ ...s, weight: s.weight / sum }));
+      const sections = rebalanceUnlockedSectionWeights(remaining);
       return { ...prev, sections };
     });
     if (selectedSectionId === sectionId) {
@@ -3196,16 +3541,28 @@ export default function App() {
   return (
     <AppShell
       view={view}
-      rubricName={rubric.name}
+      rubricName={viewingVersion ? viewingVersion.rubric.name : rubric.name}
       onNavigate={navigate}
       dirty={dirty}
-      onPublish={() => setShowPublish(true)}
+      onPublish={() => {
+        if (readOnly && viewingVersion) setActivateTargetId(viewingVersion.id);
+        else setShowPublish(true);
+      }}
       onSaveAndExit={handleSaveAndExit}
       onEditRubricMeta={() => setShowEditRubricMeta(true)}
-      editorVersion={['edit', 'scoring', 'preview'].includes(view) ? editorVersion : undefined}
-      onEditorVersionChange={setEditorVersion}
+      editorVersion={
+        ['edit', 'scoring', 'preview', 'versions'].includes(view) ? editorVersion : undefined
+      }
+      onEditorVersionChange={readOnly ? undefined : setEditorVersion}
       onEditorTab={navigate}
       publishDisabled={publishDisabled}
+      publishDisabledReason={publishDisabledReason}
+      publishLabel={readOnly ? 'Publish this version' : 'Publish'}
+      versions={versions}
+      activeVersionId={activeVersionId}
+      onViewVersion={handleViewVersion}
+      viewingVersion={viewingVersion}
+      onExitViewing={handleExitViewing}
     >
       {view === 'hub' && (
         <HubView
@@ -3220,55 +3577,65 @@ export default function App() {
         />
       )}
       {view === 'edit' && (
-        <EditorView
-          rubric={rubric}
-          selectedSectionId={selectedSectionId}
-          selectedAttrId={selectedAttrId}
-          selectedRatingLevelId={selectedRatingLevelId}
-          editingSectionId={editingSectionId}
-          onSelectSection={(id) => {
-            setSelectedSectionId(id);
-            setUrl('edit', id);
-            const nextSection = rubric.sections.find((s) => s.id === id);
-            setSelectedAttrId(firstAttributeId(nextSection));
-            setSelectedRatingLevelId(null);
-          }}
-          onSelectAttr={setSelectedAttrId}
-          onSelectRatingLevel={setSelectedRatingLevelId}
-          onUpdateAttr={updateAttr}
-          onUpdateRatingLevel={updateRatingLevel}
-          onAddRatingLevel={addRatingLevel}
-          onRemoveRatingLevel={removeRatingLevel}
-          onSetRatingMinimumStandard={setRatingMinimumStandard}
-          onGenerateRatingGuideAI={generateRatingGuideAI}
-          onResetRatingGuide={resetRatingGuide}
-          onUpdateSectionName={updateSectionName}
-          onEditingSectionDone={() => setEditingSectionId(null)}
-          onSectionWeightChange={updateWeight}
-          onAddSection={addSection}
-          onRemoveSection={removeSection}
-          onReorderSections={reorderSectionsToIndex}
-          onAddAttribute={addAttribute}
-          onRemoveAttribute={removeAttribute}
-          onDuplicateAttribute={duplicateAttribute}
-          onAttrWeightChange={updateAttrWeight}
-          onAttrWeightModeChange={updateAttrWeightMode}
-        />
+        <ReadOnlyWrap active={readOnly}>
+          <EditorView
+            rubric={displayRubric}
+            selectedSectionId={selectedSectionId}
+            selectedAttrId={selectedAttrId}
+            selectedRatingLevelId={selectedRatingLevelId}
+            editingSectionId={editingSectionId}
+            onSelectSection={(id) => {
+              setSelectedSectionId(id);
+              setUrl('edit', id);
+              const nextSection = displayRubric.sections.find((s) => s.id === id);
+              setSelectedAttrId(firstAttributeId(nextSection));
+              setSelectedRatingLevelId(null);
+            }}
+            onSelectAttr={setSelectedAttrId}
+            onSelectRatingLevel={setSelectedRatingLevelId}
+            onUpdateAttr={updateAttr}
+            onUpdateRatingLevel={updateRatingLevel}
+            onAddRatingLevel={addRatingLevel}
+            onRemoveRatingLevel={removeRatingLevel}
+            onSetRatingMinimumStandard={setRatingMinimumStandard}
+            onGenerateRatingGuideAI={generateRatingGuideAI}
+            onResetRatingGuide={resetRatingGuide}
+            onUpdateSectionName={updateSectionName}
+            onEditingSectionDone={() => setEditingSectionId(null)}
+            onSectionWeightChange={updateWeight}
+            onAddSection={addSection}
+            onRemoveSection={removeSection}
+            onReorderSections={reorderSectionsToIndex}
+            onAddAttribute={addAttribute}
+            onRemoveAttribute={removeAttribute}
+            onDuplicateAttribute={duplicateAttribute}
+            onAttrWeightChange={updateAttrWeight}
+            onAttrWeightModeChange={updateAttrWeightMode}
+          />
+        </ReadOnlyWrap>
       )}
       {view === 'scoring' && (
-        <ScoringView
-          rubric={rubric}
-          onSettingsChange={updateSettings}
-        />
+        <ReadOnlyWrap active={readOnly}>
+          <ScoringView rubric={displayRubric} onSettingsChange={updateSettings} />
+        </ReadOnlyWrap>
       )}
       {view === 'preview' && previewResult && (
         <PreviewView
-          rubric={rubric}
+          rubric={displayRubric}
           sampleCallId={sampleCallId}
           onSampleChange={setSampleCallId}
           result={previewResult}
           isRatingGuide={isRatingGuide}
           onEdit={() => navigate('edit', selectedSectionId)}
+          readOnly={readOnly}
+        />
+      )}
+      {view === 'versions' && (
+        <VersionsView
+          versions={versions}
+          activeVersionId={activeVersionId}
+          onViewVersion={handleViewVersion}
+          onPublishVersion={(id) => setActivateTargetId(id)}
         />
       )}
       {view === 'dashboard' && (
@@ -3277,7 +3644,7 @@ export default function App() {
       {showPublish && (
         <PublishModal
           onClose={() => setShowPublish(false)}
-          onConfirm={() => {
+          onConfirm={(note) => {
             const now = new Date().toISOString();
             setRegistry((prev) =>
               prev.map((item) =>
@@ -3291,10 +3658,18 @@ export default function App() {
                     },
               ),
             );
+            handlePublishNewVersion(note);
             setDirty(false);
             setShowPublish(false);
             navigate('hub');
           }}
+        />
+      )}
+      {activateTargetId != null && (
+        <ActivateVersionModal
+          version={versions.find((v) => v.id === activateTargetId)}
+          onClose={() => setActivateTargetId(null)}
+          onConfirm={handleActivateVersion}
         />
       )}
       {showAddRubric && (
