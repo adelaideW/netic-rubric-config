@@ -14,12 +14,12 @@ A rubric runs one of two scoring models, switchable from the attribute-checklist
 
 | Model | How a stage is scored |
 |-------|-----------------------|
-| **V1 — Weighted checklist** | Each attribute is scored, the scores are combined by attribute weight, then weighted by stage weight |
-| **V2 — Rating guide** | Each stage is rated 1–5 against a written rating guide, normalized to a percentage, then weighted by stage weight |
+| **V1 — Weighted checklist** (preferred) | Each attribute is scored, the scores are combined by attribute weight, then weighted by stage weight |
+| **V2 — Rating guide** (exploration) | Each stage is rated 1–5 against a written rating guide, normalized to a percentage, then weighted by stage weight |
 
-> **Design note:** V1 (weighted checklist) was an earlier **exploration**. **V2 (rating guide) is the preferred final design** — it scores each stage holistically against explicit level definitions, which is easier for CXR managers to calibrate and for the AI to apply consistently. Both are kept in the prototype so the two directions can be compared.
+> **Design note:** **V1 (weighted checklist) is the preferred final design** — its per-attribute scoring, weights, and Required gate give CXR managers granular, auditable control over exactly what each call is measured on. V2 (rating guide) was an **exploration** of a holistic, level-based alternative. Both are kept in the prototype so the two directions can be compared.
 
-### V2 — Rating guide (preferred)
+### V2 — Rating guide (exploration)
 
 - Each stage has a **rating guide**: an ordered list of levels (default **1–5**) with a written description of the behavior expected at each level.
 - One level is marked the **minimum standard**. A stage rated below that level is **failed** and flagged for coaching.
