@@ -1967,6 +1967,9 @@ function callCoachingNote(result, rubric) {
 
 function CallScoreCard({ rubric, result, isRatingGuide, call }) {
   const [expandedSections, setExpandedSections] = useState(() => new Set());
+  const [sourceOpen, setSourceOpen] = useState(true);
+  const [showAiConfidence, setShowAiConfidence] = useState(false);
+  const [showRecordingDetails, setShowRecordingDetails] = useState(false);
 
   const sectionIds = rubric.sections.map((s) => s.id);
   const allExpanded =
@@ -2002,12 +2005,51 @@ function CallScoreCard({ rubric, result, isRatingGuide, call }) {
           {allExpanded ? 'Collapse all' : 'Expand all'}
         </button>
       </div>
+      <CollapsibleSection
+        title="Call source"
+        open={sourceOpen}
+        onToggle={setSourceOpen}
+        className="call-source-section"
+      >
+        <div className="call-source">
+          <div className="call-meta">
+            {call.duration} ·{' '}
+            {call.outcome === 'converted' ? 'Lead converted' : 'Lead lost'}
+          </div>
+          <p className="transcript">{call.excerpt}</p>
+          <RecordingPlayer durationLabel={call.duration} />
+          <div className="preview-display-options">
+            <label className="toggle-row block preview-option">
+              <input
+                type="checkbox"
+                checked={showAiConfidence}
+                onChange={(e) => setShowAiConfidence(e.target.checked)}
+              />
+              <span>Show AI confidence</span>
+            </label>
+            <label className="toggle-row block preview-option">
+              <input
+                type="checkbox"
+                checked={showRecordingDetails}
+                onChange={(e) => setShowRecordingDetails(e.target.checked)}
+              />
+              <span>
+                {isRatingGuide
+                  ? 'Show recording details for each stage'
+                  : 'Show recording details for each attribute'}
+              </span>
+            </label>
+          </div>
+        </div>
+      </CollapsibleSection>
       <ScoreBreakdown
         result={result}
         rubric={rubric}
         expandedSections={expandedSections}
         onToggleSection={toggleSection}
         confidence={isRatingGuide ? call.stageConfidence : call.confidence}
+        showAiConfidence={showAiConfidence}
+        showRecordingDetails={showRecordingDetails}
         isRatingGuide={isRatingGuide}
       />
     </div>

@@ -4166,6 +4166,22 @@ select:focus {
   padding: 20px;
 }
 
+.call-source-section {
+  margin-top: 4px;
+  margin-bottom: 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.call-source-section .call-meta {
+  margin-top: 0;
+}
+
+.call-source-section .preview-display-options {
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
 .call-score-meta {
   margin: 4px 0 0;
   font-size: 12px;
