@@ -188,6 +188,6 @@ export function scoreCallV2(rubric, stageRatings = {}, settings = rubric.setting
     failedSections,
     flaggedSections,
     bySection,
-    formula: 'Overall = sum of stage contributions; below minimum standard → coaching',
+    formula: 'Call score = Σ (stage scores)',
   };
 }

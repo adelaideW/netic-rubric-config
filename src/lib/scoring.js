@@ -150,8 +150,7 @@ export function scoreCall(rubric, evaluations, settings = rubric.settings, perce
     failedSections,
     flaggedSections,
     bySection,
-    formula:
-      'Overall = sum of contributions; Required miss caps the stage below 60',
+    formula: 'Call score = Σ (stage scores)',
   };
 }
 

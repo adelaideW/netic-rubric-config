@@ -3061,16 +3061,16 @@ select:focus {
   z-index: 20;
   min-width: 200px;
   max-width: 320px;
-  padding: 8px 10px;
-  border-radius: 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
   background: #1e293b;
   color: #f8fafc;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
   line-height: 1.4;
   white-space: normal;
   text-align: left;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.22);
   pointer-events: none;
   visibility: hidden;
   opacity: 0;
@@ -4139,29 +4139,19 @@ select:focus {
 .hover-tooltip-bubble {
   position: fixed;
   transform: translate(-50%, calc(-100% - 8px));
-  background: #1f2430;
-  color: #fff;
-  padding: 6px 10px;
-  border-radius: 6px;
+  background: #1e293b;
+  color: #f8fafc;
+  padding: 10px 12px;
+  border-radius: 8px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
-  max-width: 260px;
+  max-width: 320px;
   white-space: normal;
-  text-align: center;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+  text-align: left;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.22);
   z-index: 1000;
   pointer-events: none;
-}
-
-.hover-tooltip-bubble::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: #1f2430;
 }
 
 

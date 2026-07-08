@@ -82,7 +82,7 @@ function ratingStageScoreFormula(section, data) {
   const weight = sectionWeightPercent(section.weight);
   const points = Math.round(data.contribution);
   const stageScore = Math.round((data.rating / data.maxRating) * 100);
-  return `${stageScore}% (stage score, Rate ${data.rating}/${data.maxRating}) × ${weight}% (stage weight) = ${points} pts`;
+  return `Stage score = (rating ÷ max rating) × 100 × stage weight = ${stageScore}% × ${weight}% = ${points} pts`;
 }
 
 function RatingStageDetail({
@@ -171,15 +171,32 @@ export function AttributeEvalRow({
 function stageScoreHint(section) {
   const count = section.attributes.filter((a) => a.enabled !== false).length;
   if (sectionUsesCustomWeights(section)) {
-    return `Stage score = weighted average of ${count} attributes`;
+    return `Attribute average = weighted average of ${count} attributes`;
   }
-  return `Stage score = average of ${count} attributes (equally weighted)`;
+  return `Attribute average = average of ${count} attributes (equally weighted)`;
 }
 
-function contributionFormulaTooltip(section, stageScore, contribution) {
-  const weight = sectionWeightPercent(section.weight);
-  const points = Math.round(contribution);
-  return `${stageScore}% (stage score) × ${weight}% (stage weight) = ${points}`;
+function contributionFormulaTooltip(section, data) {
+  const enabled = section.attributes.filter((a) => a.enabled !== false);
+  const totalWeight = enabled.reduce(
+    (sum, a) => sum + (data.byAttribute[a.id]?.weight ?? 0),
+    0,
+  );
+  const terms = enabled.map((a) => {
+    const ad = data.byAttribute[a.id];
+    const score = ad?.scoreValue ?? 0;
+    const wtPct =
+      totalWeight > 0 ? Math.round(((ad?.weight ?? 0) / totalWeight) * 100) : 0;
+    return `${score}% × ${wtPct}%`;
+  });
+  const stageWeight = sectionWeightPercent(section.weight);
+  const points = Math.round(data.contribution);
+  const expansion = `(${terms.join(' + ')}) × ${stageWeight}%`;
+  const base = 'Stage score = Σ (attribute score × attribute weight) × stage weight';
+  if (data.failed) {
+    return `${base} = ${expansion} → capped below 60% (required miss) = ${points}`;
+  }
+  return `${base} = ${expansion} = ${points}`;
 }
 
 function overallScoreFormula(rubric, result) {
@@ -195,7 +212,7 @@ function overallScoreFormula(rubric, result) {
     }
     parts[maxIdx] += diff;
   }
-  return `Call score = Σ (stage score × stage weight) = ${parts.join(' + ')} = ${result.overall}`;
+  return `Call score = Σ (stage scores) = ${parts.join(' + ')} = ${result.overall}`;
 }
 
 export function StageEvalGroup({
@@ -222,7 +239,7 @@ export function StageEvalGroup({
           </span>
           {section.name}
         </span>
-        <span className="eval-stage-score" title="Stage score (0–100)">
+        <span className="eval-stage-score" title="Attribute average (0–100)">
           {stageResult.score}
         </span>
       </button>
@@ -315,7 +332,7 @@ export function ScoreBreakdown({
           const expanded = expandedSections.has(section.id);
           const formula = isRatingGuide
             ? ratingStageScoreFormula(section, data)
-            : contributionFormulaTooltip(section, data.score, data.contribution);
+            : contributionFormulaTooltip(section, data);
           const stagePoints = Math.round(data.contribution);
           return (
             <div key={section.id} className={`section-block ${expanded ? 'expanded' : ''}`}>
@@ -482,13 +499,13 @@ const V1_SCORING_SUMMARY = {
   points: [
     {
       title: 'Overall call score',
-      formula: 'Call score = Σ (stage score × stage weight)',
-      body: 'Add up each stage’s contribution using the weights you set in Details (must total 100%). The result is the final call score shown in Preview.',
+      formula: 'Call score = Σ (stage scores)',
+      body: 'Each stage score already includes its stage weight, so the call score is simply the sum of all stage scores (the stage weights you set in Details must total 100%). The result is the final call score shown in Preview.',
     },
     {
       title: 'Stage scores',
-      formula: 'Stage score = Σ (attribute score × attribute weight) ÷ Σ attribute weight',
-      body: 'Each stage earns a score from 0–100 based on its attributes. Pass/Fail attributes count as 100 or 0; Percentage attributes use the AI’s 0–100% result; Numeric attributes convert the AI’s value within your min–max range to a 0–100 score. Attribute weights control how much each behavior counts toward the stage.',
+      formula: 'Stage score = Σ (attribute score × attribute weight) × stage weight',
+      body: 'A stage’s attributes are first combined into a weighted average from 0–100 (Pass/Fail = 100 or 0; Percentage = the AI’s 0–100% result; Numeric = the AI’s value mapped across your min–max range). That average is then multiplied by the stage weight to give the stage score in points.',
     },
     {
       title: 'When coaching is flagged',
@@ -504,13 +521,13 @@ const V2_SCORING_SUMMARY = {
   points: [
     {
       title: 'Overall call score',
-      formula: 'Call score = Σ (stage score × stage weight)',
-      body: 'Add up each stage’s contribution using the weights you set in Details (must total 100%). The result is the final call score shown in Preview.',
+      formula: 'Call score = Σ (stage scores)',
+      body: 'Each stage score already includes its stage weight, so the call score is simply the sum of all stage scores (the stage weights you set in Details must total 100%). The result is the final call score shown in Preview.',
     },
     {
       title: 'Stage scores',
-      formula: 'Stage score = (rating ÷ max rating) × 100',
-      body: 'Each stage is rated on a 1–5 scale defined in the rating guide. For example, Rate 3/5 on a five-level guide equals 60%.',
+      formula: 'Stage score = (rating ÷ max rating) × 100 × stage weight',
+      body: 'Each stage is rated on a 1–5 scale defined in the rating guide (e.g. Rate 3/5 = 60%). That percentage is then multiplied by the stage weight to give the stage score in points.',
     },
     {
       title: 'When coaching is flagged',

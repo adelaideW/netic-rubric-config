@@ -1460,8 +1460,9 @@ function ScoringView({ rubric, onSettingsChange }) {
             {settings.detailedCoachingThresholdEnabled && (
               <div className="section-coaching-thresholds">
                 <p className="hint section-threshold-intro">
-                  Contribution = stage score × stage weight. Coaching triggers when contribution
-                  is below the threshold. Max per stage matches its weight % in Details.
+                  A stage score is the attribute average × stage weight (in points). Coaching
+                  triggers when a stage score is below the threshold. Max per stage matches its
+                  weight % in Details.
                 </p>
                 {rubric.sections.map((section) => {
                   const max = sectionWeightPercent(section.weight);
@@ -2426,7 +2427,7 @@ function DashboardView({ rubric }) {
               {stageContribs.map((s, i) => {
                 const flagged = s.avg < threshold;
                 const points = Math.round(s.contribution);
-                const formula = `${s.avg}% (stage score) × ${s.weightPct}% (stage weight) = ${points} pts`;
+                const formula = `Stage score = ${s.avg}% (attribute average) × ${s.weightPct}% (stage weight) = ${points} pts`;
                 return (
                   <li key={s.id} className="avg-legend-row">
                     <span
