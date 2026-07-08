@@ -88,6 +88,7 @@ export const defaultRubric = {
           id: 'issue-id',
           name: 'Issue identification',
           description: "Gathered the customer's issue or request.",
+          required: true,
         },
         {
           id: 'assurance',
@@ -162,6 +163,7 @@ export const defaultRubric = {
           id: 'use-name',
           name: 'Use customer name',
           description: "Used the caller's name at least once during the call.",
+          required: true,
         },
       ]),
     },

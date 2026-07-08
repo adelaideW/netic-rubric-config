@@ -150,9 +150,9 @@ Any attribute can be marked **Required**. This signals that failing this attribu
 
 | Attribute | Stage | Why |
 |-----------|-------|-----|
+| Issue identification | Get to know your customer | Can't route, quote, or dispatch correctly without capturing the customer's actual issue |
 | Verify customer details | Verification | Cannot dispatch without verified contact info |
-| Availability | Inform and educate | No appointment offered = direct lead loss |
-| Service charge & payment terms | Inform and educate | Compliance risk and surprise-fee disputes |
+| Use customer name | Closing | Personalization signal that correlates with conversion; a missed name is a coachable close |
 
 Managers can toggle Required on or off per attribute.
 
