@@ -288,6 +288,7 @@ export function createInitialRegistry() {
       isSystemDefault: true,
       onboardedAt: now,
       lastUpdatedAt: now,
+      callsScored: 1284,
     },
   ];
 }
@@ -299,6 +300,7 @@ export function registryToRow(item) {
     callType: item.rubric.callType,
     editorVersion: item.rubric.editorVersion ?? EDITOR_VERSIONS.V1,
     attributeCount: countAttributes(item.rubric),
+    callsScored: item.callsScored ?? 0,
     status: item.status,
     isSystemDefault: item.isSystemDefault,
     onboardedAt: item.onboardedAt,

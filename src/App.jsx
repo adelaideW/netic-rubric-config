@@ -775,7 +775,7 @@ function HubView({
             <th title="Adopted rubrics are used to score live calls.">Adopted</th>
             <th>Name</th>
             <th>Call type</th>
-            <th>Attributes</th>
+            <th title="How many past calls this rubric has scored while adopted.">Calls scored</th>
             <th>Last updated</th>
             <th className="col-actions">Actions</th>
           </tr>
@@ -810,7 +810,7 @@ function HubView({
               <td>
                 <span className="pill pill-type">{row.callType}</span>
               </td>
-              <td>{row.attributeCount}</td>
+              <td>{row.callsScored > 0 ? row.callsScored.toLocaleString() : '—'}</td>
               <td>
                 <span className="last-updated">{row.lastUpdatedLabel}</span>
                 {row.lastUpdatedHint && (
