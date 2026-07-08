@@ -134,6 +134,7 @@ export const defaultRubric = {
           name: 'Availability',
           description:
             'Offered the next available appointment. If declined, offered an alternative.',
+          required: true,
         },
         {
           id: 'service-charge',
