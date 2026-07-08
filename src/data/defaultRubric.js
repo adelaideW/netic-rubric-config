@@ -169,10 +169,10 @@ export const defaultRubric = {
   settings: {
     partialCreditEnabled: false,
     partialCreditMultiplier: 0.5,
-    coachingThreshold: 80,
+    coachingThreshold: 60,
     coachingThresholdUnit: 'percent',
     sectionFlagThreshold: 60,
-    granularPassThreshold: 70,
+    granularPassThreshold: 60,
     detailedCoachingThresholdEnabled: false,
     sectionCoachingThresholds: {},
     coachingMaterials: [],

@@ -355,7 +355,7 @@ export function getSectionCoachingThreshold(section, settings) {
   if (typeof stored === 'number') {
     return clampSectionCoachingThreshold(stored, section.weight);
   }
-  return Math.round(max * 0.7);
+  return Math.round(max * 0.6);
 }
 
 export function defaultSectionCoachingThresholds(sections) {
