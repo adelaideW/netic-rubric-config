@@ -1992,9 +1992,9 @@ function CallScoreCard({ rubric, result, isRatingGuide, call }) {
       <div className="breakdown-panel-header">
         <div>
           <h3>Call score</h3>
-          <p className="sub">{result.formula}</p>
           <p className="call-score-meta">
-            {call.id} · {call.agent} · {call.date}
+            {call.id} · {call.agent} · {call.date} ·{' '}
+            {call.outcome === 'converted' ? 'Lead converted' : 'Lead lost'}
           </p>
         </div>
         <button
@@ -2012,36 +2012,32 @@ function CallScoreCard({ rubric, result, isRatingGuide, call }) {
         className="call-source-section"
       >
         <div className="call-source">
-          <div className="call-meta">
-            {call.duration} ·{' '}
-            {call.outcome === 'converted' ? 'Lead converted' : 'Lead lost'}
-          </div>
           <p className="transcript">{call.excerpt}</p>
           <RecordingPlayer durationLabel={call.duration} />
-          <div className="preview-display-options">
-            <label className="toggle-row block preview-option">
-              <input
-                type="checkbox"
-                checked={showAiConfidence}
-                onChange={(e) => setShowAiConfidence(e.target.checked)}
-              />
-              <span>Show AI confidence</span>
-            </label>
-            <label className="toggle-row block preview-option">
-              <input
-                type="checkbox"
-                checked={showRecordingDetails}
-                onChange={(e) => setShowRecordingDetails(e.target.checked)}
-              />
-              <span>
-                {isRatingGuide
-                  ? 'Show recording details for each stage'
-                  : 'Show recording details for each attribute'}
-              </span>
-            </label>
-          </div>
         </div>
       </CollapsibleSection>
+      <div className="preview-display-options call-score-options">
+        <label className="toggle-row block preview-option">
+          <input
+            type="checkbox"
+            checked={showAiConfidence}
+            onChange={(e) => setShowAiConfidence(e.target.checked)}
+          />
+          <span>Show AI confidence</span>
+        </label>
+        <label className="toggle-row block preview-option">
+          <input
+            type="checkbox"
+            checked={showRecordingDetails}
+            onChange={(e) => setShowRecordingDetails(e.target.checked)}
+          />
+          <span>
+            {isRatingGuide
+              ? 'Show recording details for each stage'
+              : 'Show recording details for each attribute'}
+          </span>
+        </label>
+      </div>
       <ScoreBreakdown
         result={result}
         rubric={rubric}

@@ -4178,13 +4178,10 @@ select:focus {
   border-bottom: 1px solid var(--border);
 }
 
-.call-source-section .call-meta {
-  margin-top: 0;
-}
-
-.call-source-section .preview-display-options {
-  margin-top: 14px;
-  padding-top: 14px;
+.preview-display-options.call-score-options {
+  margin: 14px 0 4px;
+  padding-top: 0;
+  border-top: none;
 }
 
 .call-score-meta {
