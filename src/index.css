@@ -985,6 +985,7 @@ textarea {
 .rubric-scoring-point-body {
   margin: 0;
   font-size: 13px;
+  font-weight: 400;
   line-height: 1.55;
   color: var(--muted);
 }
@@ -1358,7 +1359,7 @@ textarea {
 }
 
 .rubric-scoring-info-popover .rubric-scoring-point-formula {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   padding: 10px 12px;
   line-height: 1.5;
 }
