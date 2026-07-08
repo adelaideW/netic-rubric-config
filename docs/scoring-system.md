@@ -13,9 +13,11 @@ Rubric → Stages (weights sum to 100%) → Attributes (weights within stage)
 | Mode | When to use | Behavior |
 |------|-------------|----------|
 | **Pass/Fail** (default) | Single behaviors | Pass or Fail |
-| **Percentage** (advanced) | Compound tasks (e.g. verify 3 of 4 fields) | AI returns 0–100%; optional min/max score range |
+| **Percentage** (advanced) | Compound tasks (e.g. verify 3 of 4 fields) | AI returns 0–100%; optional min/max percentage range |
+| **Numeric** (advanced) | Compound tasks (e.g. verify 3 of 4 fields) | AI returns 0–5; optional min/max value range |
 
-**Prototype note:** Partial credit (50%) on Pass/Fail is disabled in this prototype.
+
+**Prototype note:** Partial credit (50%) is not supported on Pass/Fail if users wants to adopt adopt advance modes, they can choose percentage or numeric mode
 
 **Deferred:** Count-based scoring (e.g. “confirm phone number twice”) — express in v1 via instruction + Pass/Fail. Revisit as an advanced graded sub-type in v1.5 if managers need numeric targets.
 
