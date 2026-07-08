@@ -1774,8 +1774,8 @@ function PreviewView({ rubric, sampleCallId, onSampleChange, result, isRatingGui
               />
               <span>
                 {isRatingGuide
-                  ? 'Show recording details for each stage'
-                  : 'Show recording details for each attribute'}
+                  ? 'Show recordings per stage'
+                  : 'Show recordings per attribute'}
               </span>
             </label>
           </div>
@@ -2050,8 +2050,8 @@ function CallScoreCard({ rubric, result, isRatingGuide, call }) {
                   />
                   <span>
                     {isRatingGuide
-                      ? 'Show recording details for each stage'
-                      : 'Show recording details for each attribute'}
+                      ? 'Show recordings per stage'
+                      : 'Show recordings per attribute'}
                   </span>
                 </label>
               </div>

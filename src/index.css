@@ -4180,7 +4180,8 @@ select:focus {
 
 .call-source-section.call-source-light {
   margin-top: 2px;
-  padding-bottom: 14px;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .call-source-light > .collapsible-section-trigger {
@@ -4189,17 +4190,24 @@ select:focus {
   gap: 6px;
   padding: 4px 0;
   font-size: 13px;
-  font-weight: 500;
-  color: var(--muted);
+  font-weight: 600;
+  color: var(--accent);
 }
 
 .call-source-light > .collapsible-section-trigger:hover {
-  color: var(--text, #0f172a);
+  color: var(--accent);
+  opacity: 0.85;
 }
 
 .call-source-light .collapsible-chevron {
   width: 14px;
   height: 14px;
+  color: var(--accent);
+}
+
+.call-source-light > .collapsible-section-body {
+  padding-left: 0;
+  border-left: none;
 }
 
 .call-score-header-actions {
