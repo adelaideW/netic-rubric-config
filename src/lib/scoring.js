@@ -50,7 +50,7 @@ export function isRequiredMiss(attr, evalLevel, scoreValue, settings) {
     attr.scoringMode === ATTR_MODE.GRANULAR ||
     attr.scoringMode === ATTR_MODE.NUMERIC
   ) {
-    return scoreValue < (settings.granularPassThreshold ?? 70);
+    return scoreValue < REQUIRED_PASS_THRESHOLD;
   }
   if (evalLevel === EVAL.NOT_MET) return true;
   if (evalLevel === EVAL.PARTIAL && !settings.partialCreditEnabled) return true;
@@ -69,6 +69,9 @@ export function scoreAttribute(attr, evalLevel, settings, percent) {
     requiredMiss: isRequiredMiss(attr, evalLevel, scoreValue, settings),
   };
 }
+
+// Required Percentage/Numeric attributes must meet this score or the stage fails.
+export const REQUIRED_PASS_THRESHOLD = 60;
 
 // When a Required attribute is missed, the whole stage is capped below this
 // ceiling so a single critical miss can't leave the stage looking passable.

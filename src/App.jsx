@@ -858,17 +858,6 @@ function formatAttributeScoringSummary(attr, section) {
   return `Scores as: ${parts.join(' · ')}`;
 }
 
-function rubricUsesGranularScoring(rubric) {
-  return rubric.sections.some((s) =>
-    s.attributes.some(
-      (a) =>
-        a.enabled !== false &&
-        (a.scoringMode === ATTR_MODE.GRANULAR ||
-          a.scoringMode === ATTR_MODE.NUMERIC),
-    ),
-  );
-}
-
 function AttributeDetailPanel({
   section,
   attr,
@@ -1597,7 +1586,6 @@ function ThresholdUnitToggle({ unit, onChange }) {
 }
 
 function ScoringView({ rubric, onSettingsChange }) {
-  const hasGranular = rubricUsesGranularScoring(rubric);
   const settings = rubric.settings;
   const thresholdUnit = getCoachingThresholdUnit(settings);
   const thresholdSuffix = coachingThresholdUnitSuffix(thresholdUnit);
@@ -1844,28 +1832,6 @@ function ScoringView({ rubric, onSettingsChange }) {
             </label>
             </div>
           </section>
-
-          {hasGranular && (
-            <section className="coaching-section coaching-section-secondary">
-              <h2>Other scoring rules</h2>
-              <label>
-                Score pass threshold (Required)
-                <span className="label-hint">
-                  Required Percentage and Numeric attributes must meet this score or the
-                  stage fails.
-                </span>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={settings.granularPassThreshold}
-                  onChange={(e) =>
-                    onSettingsChange({ granularPassThreshold: Number(e.target.value) })
-                  }
-                />
-              </label>
-            </section>
-          )}
         </div>
       </div>
     </div>

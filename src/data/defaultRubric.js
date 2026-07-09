@@ -175,7 +175,6 @@ export const defaultRubric = {
     coachingThreshold: 60,
     coachingThresholdUnit: 'percent',
     sectionFlagThreshold: 60,
-    granularPassThreshold: 60,
     detailedCoachingThresholdEnabled: false,
     sectionCoachingThresholds: {},
     coachingMaterials: [],
