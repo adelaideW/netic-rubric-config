@@ -23,7 +23,7 @@ function granularScore(evalLevel, percent, settings) {
 
 // Numeric mode: AI returns a raw value in [min, max]; normalize to a 0–100 score.
 function numericScore(evalLevel, value, attr) {
-  const min = attr.numericMin ?? 0;
+  const min = attr.numericMin ?? 1;
   const max = attr.numericMax ?? 100;
   if (typeof value === 'number' && max > min) {
     const pct = ((value - min) / (max - min)) * 100;

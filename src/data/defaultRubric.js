@@ -54,7 +54,7 @@ function withDefaults(attr, sectionSize = 3) {
     weightLocked: false,
     percentRangeMin: 0,
     percentRangeMax: 100,
-    numericMin: 0,
+    numericMin: 1,
     numericMax: 5,
     ...attr,
     critical: undefined,

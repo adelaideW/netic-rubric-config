@@ -29,7 +29,7 @@ export function shouldShowPercentScore(attr) {
 }
 
 function formatNumericRating(scoreValue, attr) {
-  const min = attr.numericMin ?? 0;
+  const min = attr.numericMin ?? 1;
   const max = attr.numericMax ?? 100;
   const value = min + (scoreValue / 100) * (max - min);
   const rounded = Math.round(value * 10) / 10;

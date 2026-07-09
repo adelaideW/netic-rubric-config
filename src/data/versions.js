@@ -22,7 +22,7 @@ const v2Rubric = (() => {
     const attr = verification.attributes.find((a) => a.id === 'issue-details');
     if (attr) {
       attr.scoringMode = ATTR_MODE.NUMERIC;
-      attr.numericMin = 0;
+      attr.numericMin = 1;
       attr.numericMax = 5;
     }
   }

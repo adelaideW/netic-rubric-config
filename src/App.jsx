@@ -1002,7 +1002,7 @@ function AttributeDetailPanel({
                   <input
                     type="number"
                     max={attr.numericMax ?? 5}
-                    value={attr.numericMin ?? 0}
+                    value={attr.numericMin ?? 1}
                     onChange={(e) =>
                       onUpdateAttr(section.id, attr.id, {
                         numericMin: Number(e.target.value),
@@ -1014,7 +1014,7 @@ function AttributeDetailPanel({
                   Maximum value
                   <input
                     type="number"
-                    min={attr.numericMin ?? 0}
+                    min={attr.numericMin ?? 1}
                     value={attr.numericMax ?? 5}
                     onChange={(e) =>
                       onUpdateAttr(section.id, attr.id, {
